@@ -6,8 +6,8 @@ WORKDIR /usr/src/app
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install cors and its types explicitly to ensure availability during build
+RUN npm install cors @types/cors --save && npm install
 
 # Copy the rest of the application code
 COPY . .
