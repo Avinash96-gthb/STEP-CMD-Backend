@@ -1,0 +1,75 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Telehealth Platform API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/clinics": {
+      "post": {
+        "summary": "Create a new clinic",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClinicDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Clinic created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClinicDTO"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ServiceDTO": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "code": { "type": "string" },
+          "description": { "type": "string" },
+          "averagePrice": { "type": "number" },
+          "isActive": { "type": "boolean" }
+        },
+        "required": ["id", "name", "code", "description", "averagePrice", "isActive"]
+      },
+      "ClinicDTO": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "businessName": { "type": "string" },
+          "streetAddress": { "type": "string" },
+          "city": { "type": "string" },
+          "state": { "type": "string" },
+          "country": { "type": "string" },
+          "zipCode": { "type": "string" },
+          "latitude": { "type": "number" },
+          "longitude": { "type": "number" },
+          "services": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ServiceDTO" }
+          }
+        },
+        "required": ["name", "businessName", "streetAddress", "city", "state", "country", "zipCode", "latitude", "longitude", "services"]
+      }
+    }
+  }
+}
