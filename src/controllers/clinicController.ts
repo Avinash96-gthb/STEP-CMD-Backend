@@ -7,7 +7,7 @@ export const createClinic = async (req: Request, res: Response, next: NextFuncti
     try {
         const clinic: ClinicDTO = req.body;
         const created = await addClinic(clinic);
-        logInfo('Clinic created', 'Info', 'High', 'telehealth-platform', 'clinicController', 'createClinic');
+        logInfo('Clinic created', 'Info', 'High', 'telehealth-platform', 'clinicController', 'createClinic', { clinicId: created.id });
         res.status(201).json(created);
     } catch (err) {
         next(err);

@@ -1,5 +1,5 @@
 export interface ServiceDTO {
-    id: string;
+    id?: string; // id is now optional
     name: string;
     code: string;
     description: string;

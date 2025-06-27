@@ -5,7 +5,7 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/api/clinics": {
+    "/api/clinic-create": {
       "post": {
         "summary": "Create a new clinic",
         "requestBody": {
@@ -14,6 +14,26 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ClinicDTO"
+              },
+              "example": {
+                "name": "Sample Clinic",
+                "businessName": "Sample Business",
+                "streetAddress": "123 Main St",
+                "city": "Sample City",
+                "state": "SC",
+                "country": "USA",
+                "zipCode": "12345",
+                "latitude": 40.0,
+                "longitude": -74.0,
+                "services": [
+                  {
+                    "name": "Consultation",
+                    "code": "CONSULT",
+                    "description": "General doctor consultation",
+                    "averagePrice": 50,
+                    "isActive": true
+                  }
+                ]
               }
             }
           }
@@ -33,7 +53,9 @@
             "description": "Server error"
           }
         }
-      },
+      }
+    },
+    "/api/clinics": {
       "get": {
         "summary": "Get all clinics",
         "responses": {
@@ -53,6 +75,37 @@
           }
         }
       }
+    },
+    "/api/logs": {
+      "get": {
+        "summary": "Get all logs",
+        "description": "Returns all application logs.",
+        "responses": {
+          "200": {
+            "description": "A list of log entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LogEntry"
+                  }
+                },
+                "example": [
+                  {
+                    "timestamp": "2025-06-27T12:00:00.000Z",
+                    "level": "Info",
+                    "message": "Clinic created successfully.",
+                    "meta": {
+                      "clinicId": "a1b2c3d4-5678-1234-5678-abcdefabcdef"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -67,7 +120,7 @@
           "averagePrice": { "type": "number" },
           "isActive": { "type": "boolean" }
         },
-        "required": ["id", "name", "code", "description", "averagePrice", "isActive"]
+        "required": ["name", "code", "description", "averagePrice", "isActive"]
       },
       "ClinicDTO": {
         "type": "object",
@@ -88,6 +141,16 @@
           }
         },
         "required": ["name", "businessName", "streetAddress", "city", "state", "country", "zipCode", "latitude", "longitude", "services"]
+      },
+      "LogEntry": {
+        "type": "object",
+        "properties": {
+          "timestamp": { "type": "string", "format": "date-time" },
+          "level": { "type": "string" },
+          "message": { "type": "string" },
+          "meta": { "type": "object" }
+        },
+        "required": ["timestamp", "level", "message"]
       }
     }
   }

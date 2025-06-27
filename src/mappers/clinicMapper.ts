@@ -1,5 +1,6 @@
 import { Clinic, Service } from '../models/clinic';
 import { ClinicDTO, ServiceDTO } from '../dtos/clinic.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 export const toClinicEntity = (dto: ClinicDTO): Clinic => ({
     id: dto.id || '',
@@ -17,7 +18,7 @@ export const toClinicEntity = (dto: ClinicDTO): Clinic => ({
 });
 
 export const toServiceEntity = (dto: ServiceDTO): Service => ({
-    id: dto.id,
+    id: dto.id || uuidv4(), // generate if not provided
     name: dto.name,
     code: dto.code,
     description: dto.description,
