@@ -8,6 +8,10 @@ import { seedIfNeeded } from './scripts/seed';
 import cors from './utils/cors';
 
 const app = express();
+app.use((req, res, next) => {
+  console.log('Incoming headers:', req.headers);
+  next();
+});
 
 app.use(cors);
 app.use(express.json());
