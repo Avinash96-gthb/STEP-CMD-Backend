@@ -1,14 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { getAllClinics } from '../repositories/clinicRepository';
 import { logInfo } from '../utils/logger';
-import { toClinicDTO } from '../mappers/clinicMapper';
+import { getAllClinicsService } from '../services/clinicService';
 
 export const getAllClinicsHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const clinics = await getAllClinics();
-        const clientClinc = clinics.map(toClinicDTO)
+        const clinics = await getAllClinicsService();
         logInfo('Clinics retrieved', 'Info', 'Low', 'telehealth-platform', 'getAllClinicsController', 'getAllClinicsHandler');
-        res.json(clientClinc);
+        res.json(clinics);
     } catch (err) {
         next(err);
     }
