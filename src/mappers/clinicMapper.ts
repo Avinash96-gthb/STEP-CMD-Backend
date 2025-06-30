@@ -25,3 +25,23 @@ export const toServiceEntity = (dto: ServiceDTO): Service => ({
     averagePrice: dto.averagePrice,
     isActive: dto.isActive,
 });
+
+export const toClinicDTO = (clinic: Clinic): ClinicDTO => ({
+    // Optionally omit id, dateCreated, etc. if you don't want to expose them
+    name: clinic.name,
+    businessName: clinic.businessName,
+    streetAddress: clinic.streetAddress,
+    city: clinic.city,
+    state: clinic.state,
+    country: clinic.country,
+    zipCode: clinic.zipCode,
+    latitude: clinic.latitude,
+    longitude: clinic.longitude,
+    services: clinic.services.map(service => ({
+        name: service.name,
+        code: service.code,
+        description: service.description,
+        averagePrice: service.averagePrice,
+        isActive: service.isActive,
+    })),
+});
