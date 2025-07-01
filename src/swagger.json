@@ -13,27 +13,23 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ClinicDTO"
+                "$ref": "#/components/schemas/CreateClinicRequestDTO"
               },
               "example": {
-                "name": "Sample Clinic",
-                "businessName": "Sample Business",
-                "streetAddress": "123 Main St",
-                "city": "Sample City",
-                "state": "SC",
+                "name": "Downtown Medical Center",
+                "businessName": "Downtown Healthcare LLC",
+                "streetAddress": "456 Healthcare Ave",
+                "city": "New York",
+                "state": "NY",
                 "country": "USA",
-                "zipCode": "12345",
-                "latitude": 40.0,
-                "longitude": -74.0,
-                "services": [
-                  {
-                    "name": "Consultation",
-                    "code": "CONSULT",
-                    "description": "General doctor consultation",
-                    "averagePrice": 50,
-                    "isActive": true
-                  }
-                ]
+                "zipCode": "10001",
+                "latitude": 40.7128,
+                "longitude": -74.0060,
+                "serviceIds": ["SRV001", "SRV003", "SRV002"],
+                "customPrices": {
+                  "SRV001": 75.0,
+                  "SRV003": 85.0
+                }
               }
             }
           }
@@ -45,9 +41,53 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ClinicDTO"
+                },
+                "example": {
+                  "clinicId": "CL202500001",
+                  "name": "Downtown Medical Center",
+                  "businessName": "Downtown Healthcare LLC",
+                  "streetAddress": "456 Healthcare Ave",
+                  "city": "New York",
+                  "state": "NY",
+                  "country": "USA",
+                  "zipCode": "10001",
+                  "latitude": 40.7128,
+                  "longitude": -74.0060,
+                  "services": [
+                    {
+                      "serviceId": "SRV001",
+                      "serviceName": "Consultation",
+                      "serviceCode": "CONSULT",
+                      "serviceDescription": "General doctor consultation",
+                      "defaultPrice": 50,
+                      "customPrice": 75,
+                      "isOffered": true
+                    },
+                    {
+                      "serviceId": "SRV003",
+                      "serviceName": "Blood Test",
+                      "serviceCode": "BLOOD",
+                      "serviceDescription": "Blood testing service",
+                      "defaultPrice": 75,
+                      "customPrice": 85,
+                      "isOffered": true
+                    },
+                    {
+                      "serviceId": "SRV002",
+                      "serviceName": "X-ray",
+                      "serviceCode": "XRAY",
+                      "serviceDescription": "X-ray imaging service",
+                      "defaultPrice": 100,
+                      "customPrice": null,
+                      "isOffered": true
+                    }
+                  ]
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid request data"
           },
           "500": {
             "description": "Server error"
@@ -76,6 +116,74 @@
         }
       }
     },
+    "/api/services": {
+      "get": {
+        "summary": "Get all available services",
+        "responses": {
+          "200": {
+            "description": "A list of services",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ServiceDTO" }
+                },
+                "example": [
+                  {
+                    "id": "uuid-here",
+                    "serviceId": "SRV001",
+                    "name": "Consultation",
+                    "code": "CONSULT",
+                    "description": "General doctor consultation",
+                    "averagePrice": 50,
+                    "isActive": true
+                  },
+                  {
+                    "id": "uuid-here",
+                    "serviceId": "SRV002",
+                    "name": "X-ray",
+                    "code": "XRAY",
+                    "description": "X-ray imaging service",
+                    "averagePrice": 100,
+                    "isActive": true
+                  },
+                  {
+                    "id": "uuid-here",
+                    "serviceId": "SRV003",
+                    "name": "Blood Test",
+                    "code": "BLOOD",
+                    "description": "Blood testing service",
+                    "averagePrice": 75,
+                    "isActive": true
+                  },
+                  {
+                    "id": "uuid-here",
+                    "serviceId": "SRV004",
+                    "name": "Covid Test",
+                    "code": "COVID",
+                    "description": "COVID-19 testing",
+                    "averagePrice": 30,
+                    "isActive": true
+                  },
+                  {
+                    "id": "uuid-here",
+                    "serviceId": "SRV005",
+                    "name": "MRI Scan",
+                    "code": "MRI",
+                    "description": "MRI scanning service",
+                    "averagePrice": 500,
+                    "isActive": true
+                  }
+                ]
+              }
+            }
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
     "/api/logs": {
       "get": {
         "summary": "Get all logs",
@@ -90,17 +198,7 @@
                   "items": {
                     "$ref": "#/components/schemas/LogEntry"
                   }
-                },
-                "example": [
-                  {
-                    "timestamp": "2025-06-27T12:00:00.000Z",
-                    "level": "Info",
-                    "message": "Clinic created successfully.",
-                    "meta": {
-                      "clinicId": "a1b2c3d4-5678-1234-5678-abcdefabcdef"
-                    }
-                  }
-                ]
+                }
               }
             }
           }
@@ -113,31 +211,72 @@
       "ServiceDTO": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "name": { "type": "string" },
-          "code": { "type": "string" },
-          "description": { "type": "string" },
-          "averagePrice": { "type": "number" },
-          "isActive": { "type": "boolean" }
+          "id": { "type": "string", "description": "UUID of the service" },
+          "serviceId": { "type": "string", "description": "Service ID (e.g., SRV001)" },
+          "name": { "type": "string", "description": "Service name" },
+          "code": { "type": "string", "description": "Service code" },
+          "description": { "type": "string", "description": "Service description" },
+          "averagePrice": { "type": "number", "description": "Average price for the service" },
+          "isActive": { "type": "boolean", "description": "Whether the service is active" }
         },
         "required": ["name", "code", "description", "averagePrice", "isActive"]
+      },
+      "ClinicServiceDTO": {
+        "type": "object",
+        "properties": {
+          "serviceId": { "type": "string", "description": "Service ID (e.g., SRV001)" },
+          "serviceName": { "type": "string", "description": "Name of the service" },
+          "serviceCode": { "type": "string", "description": "Code of the service" },
+          "serviceDescription": { "type": "string", "description": "Description of the service" },
+          "defaultPrice": { "type": "number", "description": "Default price of the service" },
+          "customPrice": { "type": "number", "nullable": true, "description": "Custom price set by the clinic" },
+          "isOffered": { "type": "boolean", "description": "Whether the clinic offers this service" }
+        },
+        "required": ["serviceId", "serviceName", "serviceCode", "serviceDescription", "defaultPrice", "isOffered"]
+      },
+      "CreateClinicRequestDTO": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "Clinic name" },
+          "businessName": { "type": "string", "description": "Business name" },
+          "streetAddress": { "type": "string", "description": "Street address" },
+          "city": { "type": "string", "description": "City" },
+          "state": { "type": "string", "description": "State" },
+          "country": { "type": "string", "description": "Country" },
+          "zipCode": { "type": "string", "description": "ZIP code" },
+          "latitude": { "type": "number", "description": "Latitude coordinate" },
+          "longitude": { "type": "number", "description": "Longitude coordinate" },
+          "serviceIds": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Array of service IDs (e.g., ['SRV001', 'SRV002']) that this clinic will offer"
+          },
+          "customPrices": {
+            "type": "object",
+            "additionalProperties": { "type": "number" },
+            "description": "Optional custom prices for specific services (serviceId: price, e.g., {'SRV001': 75.0})"
+          }
+        },
+        "required": ["name", "businessName", "streetAddress", "city", "state", "country", "zipCode", "latitude", "longitude", "serviceIds"]
       },
       "ClinicDTO": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "name": { "type": "string" },
-          "businessName": { "type": "string" },
-          "streetAddress": { "type": "string" },
-          "city": { "type": "string" },
-          "state": { "type": "string" },
-          "country": { "type": "string" },
-          "zipCode": { "type": "string" },
-          "latitude": { "type": "number" },
-          "longitude": { "type": "number" },
+          "id": { "type": "string", "description": "UUID of the clinic" },
+          "clinicId": { "type": "string", "description": "Clinic ID (e.g., CL202500001)" },
+          "name": { "type": "string", "description": "Clinic name" },
+          "businessName": { "type": "string", "description": "Business name" },
+          "streetAddress": { "type": "string", "description": "Street address" },
+          "city": { "type": "string", "description": "City" },
+          "state": { "type": "string", "description": "State" },
+          "country": { "type": "string", "description": "Country" },
+          "zipCode": { "type": "string", "description": "ZIP code" },
+          "latitude": { "type": "number", "description": "Latitude coordinate" },
+          "longitude": { "type": "number", "description": "Longitude coordinate" },
           "services": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ServiceDTO" }
+            "items": { "$ref": "#/components/schemas/ClinicServiceDTO" },
+            "description": "Services offered by this clinic"
           }
         },
         "required": ["name", "businessName", "streetAddress", "city", "state", "country", "zipCode", "latitude", "longitude", "services"]
@@ -147,6 +286,10 @@
         "properties": {
           "timestamp": { "type": "string", "format": "date-time" },
           "level": { "type": "string" },
+          "priority": { "type": "string" },
+          "project": { "type": "string" },
+          "className": { "type": "string" },
+          "method": { "type": "string" },
           "message": { "type": "string" },
           "meta": { "type": "object" }
         },

@@ -1,5 +1,6 @@
 export interface Service {
-    id: string;
+    id: string; // UUID
+    serviceId: string; // SRV001, SRV002, etc.
     name: string;
     code: string;
     description: string;
@@ -9,6 +10,7 @@ export interface Service {
 
 export interface Clinic {
     id: string;
+    clinicId: string;
     name: string;
     businessName: string;
     streetAddress: string;
@@ -19,5 +21,15 @@ export interface Clinic {
     latitude: number;
     longitude: number;
     dateCreated: Date;
-    services: Service[];
+    services: ClinicService[];
+}
+
+export interface ClinicService {
+    serviceId: string; // SRV001, SRV002, etc. (not UUID)
+    serviceName: string;
+    serviceCode: string;
+    serviceDescription: string;
+    defaultPrice: number;
+    customPrice?: number;
+    isOffered: boolean;
 }

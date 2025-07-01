@@ -1,12 +1,15 @@
 import { addClinic } from '../services/clinicService';
 import { getAllClinics } from '../repositories/clinicRepository';
-import { ClinicDTO } from '../dtos/clinic.dto';
-import { v4 as uuidv4 } from 'uuid';
+import { CreateClinicRequestDTO } from '../dtos/clinic.dto';
+import { getAllServices } from '../repositories/serviceRepository';
 
 describe('Clinic Service', () => {
   it('should add a clinic and retrieve it', async () => {
-    const clinic: ClinicDTO = {
-        id: uuidv4(),
+    // Get available services first
+    const services = await getAllServices();
+    const serviceIds = services.slice(0, 2).map(s => s.id); // Use first 2 services
+
+    const clinic: CreateClinicRequestDTO = {
       name: 'Test Clinic',
       businessName: 'Test Biz',
       streetAddress: '123 Main St',
@@ -16,19 +19,16 @@ describe('Clinic Service', () => {
       zipCode: '12345',
       latitude: 0,
       longitude: 0,
-      services: [
-        {
-          id: uuidv4(),
-          name: 'Consultation',
-          code: 'CONSULT',
-          description: 'General consultation',
-          averagePrice: 100,
-          isActive: true
-        }
-      ]
+      serviceIds: serviceIds,
+      customPrices: {
+        [serviceIds[0]]: 80.0
+      }
     };
+
     const created = await addClinic(clinic);
     expect(created.name).toBe('Test Clinic');
+    expect(created.clinicId).toMatch(/^CL\d{9}$/);
+
     const clinics = await getAllClinics();
     expect(clinics.some(c => c.name === 'Test Clinic')).toBe(true);
   });
@@ -36,7 +36,11 @@ describe('Clinic Service', () => {
   it('should retrieve all clinics', async () => {
     const clinics = await getAllClinics();
     expect(Array.isArray(clinics)).toBe(true);
-    // Optionally check for at least one clinic
-    // expect(clinics.length).toBeGreaterThan(0);
+  });
+
+  it('should retrieve all services', async () => {
+    const services = await getAllServices();
+    expect(Array.isArray(services)).toBe(true);
+    expect(services.length).toBeGreaterThan(0);
   });
 });

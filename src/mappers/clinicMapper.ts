@@ -1,9 +1,10 @@
-import { Clinic, Service } from '../models/clinic';
-import { ClinicDTO, ServiceDTO } from '../dtos/clinic.dto';
+import { Clinic, ClinicService } from '../models/clinic';
+import { ClinicDTO, CreateClinicRequestDTO, ClinicServiceDTO } from '../dtos/clinic.dto';
 import { v4 as uuidv4 } from 'uuid';
 
-export const toClinicEntity = (dto: ClinicDTO): Clinic => ({
-    id: dto.id || '',
+export const toClinicEntity = (dto: CreateClinicRequestDTO & { id: string; clinicId: string }): Clinic => ({
+    id: dto.id,
+    clinicId: dto.clinicId,
     name: dto.name,
     businessName: dto.businessName,
     streetAddress: dto.streetAddress,
@@ -14,20 +15,11 @@ export const toClinicEntity = (dto: ClinicDTO): Clinic => ({
     latitude: dto.latitude,
     longitude: dto.longitude,
     dateCreated: new Date(),
-    services: dto.services.map(toServiceEntity),
-});
-
-export const toServiceEntity = (dto: ServiceDTO): Service => ({
-    id: dto.id || uuidv4(), // generate if not provided
-    name: dto.name,
-    code: dto.code,
-    description: dto.description,
-    averagePrice: dto.averagePrice,
-    isActive: dto.isActive,
+    services: []
 });
 
 export const toClinicDTO = (clinic: Clinic): ClinicDTO => ({
-    // Optionally omit id, dateCreated, etc. if you don't want to expose them
+    clinicId: clinic.clinicId,
     name: clinic.name,
     businessName: clinic.businessName,
     streetAddress: clinic.streetAddress,
@@ -38,10 +30,12 @@ export const toClinicDTO = (clinic: Clinic): ClinicDTO => ({
     latitude: clinic.latitude,
     longitude: clinic.longitude,
     services: clinic.services.map(service => ({
-        name: service.name,
-        code: service.code,
-        description: service.description,
-        averagePrice: service.averagePrice,
-        isActive: service.isActive,
-    })),
+        serviceId: service.serviceId,
+        serviceName: service.serviceName,
+        serviceCode: service.serviceCode,
+        serviceDescription: service.serviceDescription,
+        defaultPrice: service.defaultPrice,
+        customPrice: service.customPrice,
+        isOffered: service.isOffered
+    }))
 });

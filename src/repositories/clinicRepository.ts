@@ -1,27 +1,36 @@
 import { pool } from '../config/database';
-import { Clinic } from '../models/clinic';
+import { Clinic, ClinicService } from '../models/clinic';
 
-export const createClinic = async (clinic: Clinic): Promise<void> => {
+export const createClinic = async (clinic: Clinic, serviceIds: string[], customPrices?: { [serviceId: string]: number }): Promise<void> => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
+        
         const clinicInsert = `
             INSERT INTO clinics 
-            (id, name, business_name, street_address, city, state, country, zip_code, latitude, longitude, date_created)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+            (id, clinic_id, name, business_name, street_address, city, state, country, zip_code, latitude, longitude, date_created)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
         `;
         await client.query(clinicInsert, [
-            clinic.id, clinic.name, clinic.businessName, clinic.streetAddress, clinic.city,
-            clinic.state, clinic.country, clinic.zipCode, clinic.latitude, clinic.longitude, clinic.dateCreated
+            clinic.id, clinic.clinicId, clinic.name, clinic.businessName, clinic.streetAddress, 
+            clinic.city, clinic.state, clinic.country, clinic.zipCode, clinic.latitude, 
+            clinic.longitude, clinic.dateCreated
         ]);
-        for (const service of clinic.services) {
-            await client.query(
-                `INSERT INTO clinic_services 
-                (clinic_id, service_id, name, code, description, average_price, is_active)
-                VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-                [clinic.id, service.id, service.name, service.code, service.description, service.averagePrice, service.isActive]
-            );
+
+        // Convert service IDs (SRV001, etc.) to UUIDs for database storage
+        for (const serviceId of serviceIds) {
+            const serviceResult = await client.query(`SELECT id FROM services WHERE service_id = $1`, [serviceId]);
+            if (serviceResult.rows.length > 0) {
+                const serviceUuid = serviceResult.rows[0].id;
+                const customPrice = customPrices?.[serviceId] || null;
+                await client.query(
+                    `INSERT INTO clinic_services (clinic_id, service_id, is_offered, custom_price)
+                     VALUES ($1, $2, $3, $4)`,
+                    [clinic.id, serviceUuid, true, customPrice]
+                );
+            }
         }
+
         await client.query('COMMIT');
     } catch (e) {
         await client.query('ROLLBACK');
@@ -33,32 +42,32 @@ export const createClinic = async (clinic: Clinic): Promise<void> => {
 
 export const getAllClinics = async (): Promise<Clinic[]> => {
     const result = await pool.query(`
-        SELECT c.*, 
-               json_agg(json_build_object(
-                   'id', cs.service_id,
-                   'name', cs.name,
-                   'code', cs.code,
-                   'description', cs.description,
-                   'averagePrice', cs.average_price,
-                   'isActive', cs.is_active
-               )) AS services
+        SELECT 
+            c.id, c.clinic_id as "clinicId", c.name, c.business_name as "businessName",
+            c.street_address as "streetAddress", c.city, c.state, c.country, 
+            c.zip_code as "zipCode", c.latitude, c.longitude, c.date_created as "dateCreated",
+            json_agg(
+                CASE WHEN s.id IS NOT NULL THEN
+                    json_build_object(
+                        'serviceId', s.service_id,
+                        'serviceName', s.name,
+                        'serviceCode', s.code,
+                        'serviceDescription', s.description,
+                        'defaultPrice', s.average_price,
+                        'customPrice', cs.custom_price,
+                        'isOffered', cs.is_offered
+                    )
+                END
+            ) FILTER (WHERE s.id IS NOT NULL) AS services
         FROM clinics c
         LEFT JOIN clinic_services cs ON c.id = cs.clinic_id
+        LEFT JOIN services s ON cs.service_id = s.id
         GROUP BY c.id
         ORDER BY c.date_created DESC
     `);
+    
     return result.rows.map(row => ({
-        id: row.id,
-        name: row.name,
-        businessName: row.business_name,
-        streetAddress: row.street_address,
-        city: row.city,
-        state: row.state,
-        country: row.country,
-        zipCode: row.zip_code,
-        latitude: row.latitude,
-        longitude: row.longitude,
-        dateCreated: row.date_created,
-        services: Array.isArray(row.services) && row.services[0] !== null ? row.services : []
+        ...row,
+        services: row.services || []
     }));
 };
