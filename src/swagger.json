@@ -2,12 +2,14 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Telehealth Platform API",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "description": "A comprehensive telehealth platform API with caching capabilities"
   },
   "paths": {
     "/api/clinic-create": {
       "post": {
         "summary": "Create a new clinic",
+        "tags": ["Clinics"],
         "requestBody": {
           "required": true,
           "content": {
@@ -87,10 +89,24 @@
             }
           },
           "400": {
-            "description": "Invalid request data"
+            "description": "Invalid request data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -98,6 +114,8 @@
     "/api/clinics": {
       "get": {
         "summary": "Get all clinics",
+        "description": "Retrieves all clinics with their associated services. Uses cache-first strategy for improved performance.",
+        "tags": ["Clinics"],
         "responses": {
           "200": {
             "description": "A list of clinics",
@@ -106,12 +124,209 @@
                 "schema": {
                   "type": "array",
                   "items": { "$ref": "#/components/schemas/ClinicDTO" }
+                },
+                "example": [
+                  {
+                    "clinicId": "CL202500001",
+                    "name": "Downtown Medical Center",
+                    "businessName": "Downtown Healthcare LLC",
+                    "streetAddress": "456 Healthcare Ave",
+                    "city": "New York",
+                    "state": "NY",
+                    "country": "USA",
+                    "zipCode": "10001",
+                    "latitude": 40.7128,
+                    "longitude": -74.0060,
+                    "services": [
+                      {
+                        "serviceId": "SRV001",
+                        "serviceName": "Consultation",
+                        "serviceCode": "CONSULT",
+                        "serviceDescription": "General doctor consultation",
+                        "defaultPrice": 50,
+                        "customPrice": 75,
+                        "isOffered": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clinics/city/{city}": {
+      "get": {
+        "summary": "Get clinics by city (cached)",
+        "description": "Retrieves all clinics in a specific city. Uses cache-first strategy for improved performance.",
+        "tags": ["Clinics", "Cache"],
+        "parameters": [
+          {
+            "name": "city",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "City name to filter clinics (case-insensitive)",
+            "example": "New York"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of clinics in the specified city",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ClinicDTO" }
+                },
+                "example": [
+                  {
+                    "clinicId": "CL202500001",
+                    "name": "Downtown Medical Center",
+                    "businessName": "Downtown Healthcare LLC",
+                    "streetAddress": "456 Healthcare Ave",
+                    "city": "New York",
+                    "state": "NY",
+                    "country": "USA",
+                    "zipCode": "10001",
+                    "latitude": 40.7128,
+                    "longitude": -74.0060,
+                    "services": [
+                      {
+                        "serviceId": "SRV001",
+                        "serviceName": "Consultation",
+                        "serviceCode": "CONSULT",
+                        "serviceDescription": "General doctor consultation",
+                        "defaultPrice": 50,
+                        "customPrice": 75,
+                        "isOffered": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "404": {
+            "description": "No clinics found in the specified city",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {},
+                  "example": []
                 }
               }
             }
           },
           "500": {
-            "description": "Server error"
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clinics/{id}": {
+      "get": {
+        "summary": "Get clinic by ID (cached)",
+        "description": "Retrieves a specific clinic by its ID or clinic ID. Uses cache-first strategy for improved performance.",
+        "tags": ["Clinics", "Cache"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Clinic ID (e.g., 'CL202500001')",
+            "example": "CL202500001"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Clinic details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClinicDTO"
+                },
+                "example": {
+                  "clinicId": "CL202500001",
+                  "name": "Downtown Medical Center",
+                  "businessName": "Downtown Healthcare LLC",
+                  "streetAddress": "456 Healthcare Ave",
+                  "city": "New York",
+                  "state": "NY",
+                  "country": "USA",
+                  "zipCode": "10001",
+                  "latitude": 40.7128,
+                  "longitude": -74.0060,
+                  "services": [
+                    {
+                      "serviceId": "SRV001",
+                      "serviceName": "Consultation",
+                      "serviceCode": "CONSULT",
+                      "serviceDescription": "General doctor consultation",
+                      "defaultPrice": 50,
+                      "customPrice": 75,
+                      "isOffered": true
+                    },
+                    {
+                      "serviceId": "SRV003",
+                      "serviceName": "Blood Test",
+                      "serviceCode": "BLOOD",
+                      "serviceDescription": "Blood testing service",
+                      "defaultPrice": 75,
+                      "customPrice": 85,
+                      "isOffered": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Clinic not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Clinic not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -119,9 +334,11 @@
     "/api/services": {
       "get": {
         "summary": "Get all available services",
+        "description": "Retrieves all available services that clinics can offer. Use these service IDs when creating clinics.",
+        "tags": ["Services"],
         "responses": {
           "200": {
-            "description": "A list of services",
+            "description": "A list of available services",
             "content": {
               "application/json": {
                 "schema": {
@@ -130,7 +347,7 @@
                 },
                 "example": [
                   {
-                    "id": "uuid-here",
+                    "id": "uuid-consultation-service",
                     "serviceId": "SRV001",
                     "name": "Consultation",
                     "code": "CONSULT",
@@ -139,7 +356,7 @@
                     "isActive": true
                   },
                   {
-                    "id": "uuid-here",
+                    "id": "uuid-xray-service",
                     "serviceId": "SRV002",
                     "name": "X-ray",
                     "code": "XRAY",
@@ -148,7 +365,7 @@
                     "isActive": true
                   },
                   {
-                    "id": "uuid-here",
+                    "id": "uuid-blood-test-service",
                     "serviceId": "SRV003",
                     "name": "Blood Test",
                     "code": "BLOOD",
@@ -157,7 +374,7 @@
                     "isActive": true
                   },
                   {
-                    "id": "uuid-here",
+                    "id": "uuid-covid-test-service",
                     "serviceId": "SRV004",
                     "name": "Covid Test",
                     "code": "COVID",
@@ -166,7 +383,7 @@
                     "isActive": true
                   },
                   {
-                    "id": "uuid-here",
+                    "id": "uuid-mri-scan-service",
                     "serviceId": "SRV005",
                     "name": "MRI Scan",
                     "code": "MRI",
@@ -179,15 +396,23 @@
             }
           },
           "500": {
-            "description": "Server error"
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/logs": {
       "get": {
-        "summary": "Get all logs",
-        "description": "Returns all application logs.",
+        "summary": "Get all application logs",
+        "description": "Returns all application logs including info, warnings, and errors for debugging and monitoring purposes.",
+        "tags": ["Logs"],
         "responses": {
           "200": {
             "description": "A list of log entries",
@@ -198,6 +423,43 @@
                   "items": {
                     "$ref": "#/components/schemas/LogEntry"
                   }
+                },
+                "example": [
+                  {
+                    "timestamp": "2025-01-27T12:00:00.000Z",
+                    "level": "Info",
+                    "priority": "High",
+                    "project": "telehealth-platform",
+                    "className": "clinicController",
+                    "method": "createClinic",
+                    "message": "Clinic created",
+                    "meta": {
+                      "clinicId": "CL202500001"
+                    }
+                  },
+                  {
+                    "timestamp": "2025-01-27T12:01:00.000Z",
+                    "level": "Info",
+                    "priority": "Low",
+                    "project": "telehealth-platform",
+                    "className": "clinicCacheController",
+                    "method": "getClinicsByCityHandler",
+                    "message": "Clinics retrieved from cache",
+                    "meta": {
+                      "city": "New York",
+                      "count": 3
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -211,50 +473,148 @@
       "ServiceDTO": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "description": "UUID of the service" },
-          "serviceId": { "type": "string", "description": "Service ID (e.g., SRV001)" },
-          "name": { "type": "string", "description": "Service name" },
-          "code": { "type": "string", "description": "Service code" },
-          "description": { "type": "string", "description": "Service description" },
-          "averagePrice": { "type": "number", "description": "Average price for the service" },
-          "isActive": { "type": "boolean", "description": "Whether the service is active" }
+          "id": { 
+            "type": "string", 
+            "description": "Internal UUID of the service",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "serviceId": { 
+            "type": "string", 
+            "description": "Human-readable service ID (use this for clinic creation)",
+            "example": "SRV001"
+          },
+          "name": { 
+            "type": "string", 
+            "description": "Service name",
+            "example": "Consultation"
+          },
+          "code": { 
+            "type": "string", 
+            "description": "Service code",
+            "example": "CONSULT"
+          },
+          "description": { 
+            "type": "string", 
+            "description": "Service description",
+            "example": "General doctor consultation"
+          },
+          "averagePrice": { 
+            "type": "number", 
+            "description": "Default/average price for the service",
+            "example": 50
+          },
+          "isActive": { 
+            "type": "boolean", 
+            "description": "Whether the service is currently active",
+            "example": true
+          }
         },
-        "required": ["name", "code", "description", "averagePrice", "isActive"]
+        "required": ["id", "serviceId", "name", "code", "description", "averagePrice", "isActive"]
       },
       "ClinicServiceDTO": {
         "type": "object",
         "properties": {
-          "serviceId": { "type": "string", "description": "Service ID (e.g., SRV001)" },
-          "serviceName": { "type": "string", "description": "Name of the service" },
-          "serviceCode": { "type": "string", "description": "Code of the service" },
-          "serviceDescription": { "type": "string", "description": "Description of the service" },
-          "defaultPrice": { "type": "number", "description": "Default price of the service" },
-          "customPrice": { "type": "number", "nullable": true, "description": "Custom price set by the clinic" },
-          "isOffered": { "type": "boolean", "description": "Whether the clinic offers this service" }
+          "serviceId": { 
+            "type": "string", 
+            "description": "Service ID (e.g., SRV001)",
+            "example": "SRV001"
+          },
+          "serviceName": { 
+            "type": "string", 
+            "description": "Name of the service",
+            "example": "Consultation"
+          },
+          "serviceCode": { 
+            "type": "string", 
+            "description": "Code of the service",
+            "example": "CONSULT"
+          },
+          "serviceDescription": { 
+            "type": "string", 
+            "description": "Description of the service",
+            "example": "General doctor consultation"
+          },
+          "defaultPrice": { 
+            "type": "number", 
+            "description": "Default price of the service",
+            "example": 50
+          },
+          "customPrice": { 
+            "type": "number", 
+            "nullable": true, 
+            "description": "Custom price set by the clinic (null if using default)",
+            "example": 75
+          },
+          "isOffered": { 
+            "type": "boolean", 
+            "description": "Whether the clinic offers this service",
+            "example": true
+          }
         },
         "required": ["serviceId", "serviceName", "serviceCode", "serviceDescription", "defaultPrice", "isOffered"]
       },
       "CreateClinicRequestDTO": {
         "type": "object",
         "properties": {
-          "name": { "type": "string", "description": "Clinic name" },
-          "businessName": { "type": "string", "description": "Business name" },
-          "streetAddress": { "type": "string", "description": "Street address" },
-          "city": { "type": "string", "description": "City" },
-          "state": { "type": "string", "description": "State" },
-          "country": { "type": "string", "description": "Country" },
-          "zipCode": { "type": "string", "description": "ZIP code" },
-          "latitude": { "type": "number", "description": "Latitude coordinate" },
-          "longitude": { "type": "number", "description": "Longitude coordinate" },
+          "name": { 
+            "type": "string", 
+            "description": "Clinic name",
+            "example": "Downtown Medical Center"
+          },
+          "businessName": { 
+            "type": "string", 
+            "description": "Business name",
+            "example": "Downtown Healthcare LLC"
+          },
+          "streetAddress": { 
+            "type": "string", 
+            "description": "Street address",
+            "example": "456 Healthcare Ave"
+          },
+          "city": { 
+            "type": "string", 
+            "description": "City",
+            "example": "New York"
+          },
+          "state": { 
+            "type": "string", 
+            "description": "State",
+            "example": "NY"
+          },
+          "country": { 
+            "type": "string", 
+            "description": "Country",
+            "example": "USA"
+          },
+          "zipCode": { 
+            "type": "string", 
+            "description": "ZIP code (US format)",
+            "example": "10001"
+          },
+          "latitude": { 
+            "type": "number", 
+            "description": "Latitude coordinate",
+            "example": 40.7128
+          },
+          "longitude": { 
+            "type": "number", 
+            "description": "Longitude coordinate",
+            "example": -74.0060
+          },
           "serviceIds": {
             "type": "array",
             "items": { "type": "string" },
-            "description": "Array of service IDs (e.g., ['SRV001', 'SRV002']) that this clinic will offer"
+            "description": "Array of service IDs (e.g., ['SRV001', 'SRV002']) that this clinic will offer",
+            "example": ["SRV001", "SRV003", "SRV002"]
           },
           "customPrices": {
             "type": "object",
             "additionalProperties": { "type": "number" },
-            "description": "Optional custom prices for specific services (serviceId: price, e.g., {'SRV001': 75.0})"
+            "description": "Optional custom prices for specific services (serviceId: price)",
+            "example": {
+              "SRV001": 75.0,
+              "SRV003": 85.0
+            }
           }
         },
         "required": ["name", "businessName", "streetAddress", "city", "state", "country", "zipCode", "latitude", "longitude", "serviceIds"]
@@ -262,39 +622,156 @@
       "ClinicDTO": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "description": "UUID of the clinic" },
-          "clinicId": { "type": "string", "description": "Clinic ID (e.g., CL202500001)" },
-          "name": { "type": "string", "description": "Clinic name" },
-          "businessName": { "type": "string", "description": "Business name" },
-          "streetAddress": { "type": "string", "description": "Street address" },
-          "city": { "type": "string", "description": "City" },
-          "state": { "type": "string", "description": "State" },
-          "country": { "type": "string", "description": "Country" },
-          "zipCode": { "type": "string", "description": "ZIP code" },
-          "latitude": { "type": "number", "description": "Latitude coordinate" },
-          "longitude": { "type": "number", "description": "Longitude coordinate" },
+          "id": { 
+            "type": "string", 
+            "description": "Internal UUID of the clinic",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "clinicId": { 
+            "type": "string", 
+            "description": "Human-readable clinic ID (e.g., CL202500001)",
+            "example": "CL202500001"
+          },
+          "name": { 
+            "type": "string", 
+            "description": "Clinic name",
+            "example": "Downtown Medical Center"
+          },
+          "businessName": { 
+            "type": "string", 
+            "description": "Business name",
+            "example": "Downtown Healthcare LLC"
+          },
+          "streetAddress": { 
+            "type": "string", 
+            "description": "Street address",
+            "example": "456 Healthcare Ave"
+          },
+          "city": { 
+            "type": "string", 
+            "description": "City",
+            "example": "New York"
+          },
+          "state": { 
+            "type": "string", 
+            "description": "State",
+            "example": "NY"
+          },
+          "country": { 
+            "type": "string", 
+            "description": "Country",
+            "example": "USA"
+          },
+          "zipCode": { 
+            "type": "string", 
+            "description": "ZIP code",
+            "example": "10001"
+          },
+          "latitude": { 
+            "type": "number", 
+            "description": "Latitude coordinate",
+            "example": 40.7128
+          },
+          "longitude": { 
+            "type": "number", 
+            "description": "Longitude coordinate",
+            "example": -74.0060
+          },
+          "dateCreated": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Clinic creation timestamp",
+            "example": "2025-01-27T12:00:00.000Z"
+          },
           "services": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ClinicServiceDTO" },
             "description": "Services offered by this clinic"
           }
         },
-        "required": ["name", "businessName", "streetAddress", "city", "state", "country", "zipCode", "latitude", "longitude", "services"]
+        "required": ["id", "clinicId", "name", "businessName", "streetAddress", "city", "state", "country", "zipCode", "latitude", "longitude", "services"]
       },
       "LogEntry": {
         "type": "object",
         "properties": {
-          "timestamp": { "type": "string", "format": "date-time" },
-          "level": { "type": "string" },
-          "priority": { "type": "string" },
-          "project": { "type": "string" },
-          "className": { "type": "string" },
-          "method": { "type": "string" },
-          "message": { "type": "string" },
-          "meta": { "type": "object" }
+          "timestamp": { 
+            "type": "string", 
+            "format": "date-time",
+            "description": "ISO timestamp of the log entry",
+            "example": "2025-01-27T12:00:00.000Z"
+          },
+          "level": { 
+            "type": "string", 
+            "enum": ["Info", "Warning", "Error"],
+            "description": "Log level",
+            "example": "Info"
+          },
+          "priority": { 
+            "type": "string", 
+            "enum": ["Critical", "High", "Medium", "Low"],
+            "description": "Priority level",
+            "example": "High"
+          },
+          "project": { 
+            "type": "string", 
+            "description": "Project name",
+            "example": "telehealth-platform"
+          },
+          "className": { 
+            "type": "string", 
+            "description": "Class/controller name that generated the log",
+            "example": "clinicController"
+          },
+          "method": { 
+            "type": "string", 
+            "description": "Method name that generated the log",
+            "example": "createClinic"
+          },
+          "message": { 
+            "type": "string", 
+            "description": "Log message",
+            "example": "Clinic created successfully"
+          },
+          "meta": { 
+            "type": "object", 
+            "description": "Additional metadata about the log entry",
+            "example": {
+              "clinicId": "CL202500001",
+              "userId": "user123"
+            }
+          }
         },
-        "required": ["timestamp", "level", "message"]
+        "required": ["timestamp", "level", "priority", "project", "className", "method", "message", "meta"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message",
+            "example": "Some service IDs are invalid"
+          }
+        },
+        "required": ["error"]
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Clinics",
+      "description": "Operations related to clinic management"
+    },
+    {
+      "name": "Cache",
+      "description": "Cached endpoints for improved performance"
+    },
+    {
+      "name": "Services",
+      "description": "Operations related to medical services"
+    },
+    {
+      "name": "Logs",
+      "description": "Application logging and monitoring"
+    }
+  ]
 }
