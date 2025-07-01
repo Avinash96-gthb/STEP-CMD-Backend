@@ -7,6 +7,12 @@ import { cacheClinic } from '../utils/cache';
 
 export const addClinic = async (dto: CreateClinicRequestDTO) => {
     // Validate that all service IDs exist (using SRV001, SRV002, etc.)
+
+    if (!dto.serviceIds || dto.serviceIds.length === 0) {
+        throw new Error('Some service IDs are invalid');
+    }
+
+    
     const services = await getServicesByIds(dto.serviceIds);
     if (services.length !== dto.serviceIds.length) {
         throw new Error('Some service IDs are invalid');

@@ -8,7 +8,10 @@
     "start": "node dist/server.js",
     "dev": "ts-node src/server.ts",
     "lint": "eslint . --ext .ts",
-    "test": "jest"
+    "test": "DB_HOST=localhost jest",
+    "test:watch": "DB_HOST=localhost jest --watch",
+    "test:coverage": "DB_HOST=localhost jest --coverage",
+    "test:docker": "docker-compose up -d && DB_HOST=localhost jest; docker-compose down"
   },
   "dependencies": {
     "@types/cors": "^2.8.19",
