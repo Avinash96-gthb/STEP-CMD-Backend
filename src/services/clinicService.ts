@@ -3,10 +3,17 @@ import { toClinicEntity, toClinicDTO } from '../mappers/clinicMapper';
 import { createClinic, getAllClinics as getAllClinicsFromRepo, getClinicById as getClinicByIdFromRepo, getClinicsByCity as getClinicsByCityFromRepo } from '../repositories/clinicRepository';
 import { getServicesByIds } from '../repositories/serviceRepository';
 import { v4 as uuidv4 } from 'uuid';
-import { cacheClinic, getAllClinicsFromCache, getClinicById, getClinicsByCity } from '../utils/cache';
+import { 
+    cacheIndividualClinic, 
+    cacheAllClinicsComplete, 
+    cacheCityComplete,
+    getAllClinicsComplete, 
+    getCityClinicsComplete,
+    getIndividualClinic,
+    clearCache
+} from '../utils/cache';
 
 export const addClinic = async (dto: CreateClinicRequestDTO) => {
-    // Validate that all service IDs exist (using SRV001, SRV002, etc.)
     if (!dto.serviceIds || dto.serviceIds.length === 0) {
         throw new Error('Some service IDs are invalid');
     }
@@ -26,69 +33,84 @@ export const addClinic = async (dto: CreateClinicRequestDTO) => {
     });
 
     await createClinic(clinicEntity, dto.serviceIds, dto.customPrices);
-    await cacheClinic(clinicEntity);
+    
+    // STRATEGY: Only cache as individual clinic
+    // Don't affect complete datasets since we just added new data
+    cacheIndividualClinic(clinicEntity);
+    
+    // OPTIONAL: Clear complete caches since database has new data
+    // This ensures next "get all" will fetch fresh complete data
+    console.log('🗑️ Clearing complete caches due to new clinic creation');
+    clearCache();
     
     return clinicEntity;
 };
 
-// Updated to use cache-first strategy
+// GET ALL CLINICS - Only uses complete cache or fetches all from DB
 export const getAllClinicsService = async () => {
-    // Try cache first
-    const cachedClinics = getAllClinicsFromCache();
-    if (cachedClinics.length > 0) {
-        console.log('📦 Returning clinics from cache');
+    console.log('🔍 getAllClinicsService: Checking complete cache...');
+    
+    // TRY COMPLETE CACHE FIRST
+    const cachedClinics = getAllClinicsComplete();
+    if (cachedClinics) {
+        console.log('📦 SUCCESS: Returning ALL clinics from complete cache');
         return cachedClinics.map(toClinicDTO);
     }
     
-    // Fallback to database
-    console.log('🔍 Cache miss - fetching from database');
+    // CACHE MISS OR EXPIRED - FETCH ALL FROM DATABASE
+    console.log('🔍 CACHE MISS: Fetching ALL clinics from database');
     const clinics = await getAllClinicsFromRepo();
     
-    // Cache the results
-    for (const clinic of clinics) {
-        await cacheClinic(clinic);
-    }
+    // CACHE THE COMPLETE DATASET
+    cacheAllClinicsComplete(clinics);
+    console.log(`✅ Cached complete dataset: ${clinics.length} clinics`);
     
     return clinics.map(toClinicDTO);
 };
 
-// New function to get clinics by city with caching
+// GET CLINICS BY CITY - Only uses complete city cache or fetches all for that city
 export const getClinicsByCityService = async (city: string) => {
-    // Try cache first
-    const cachedClinics = getClinicsByCity(city);
-    if (cachedClinics.length > 0) {
-        console.log(`📦 Returning clinics for ${city} from cache`);
+    console.log(`🔍 getClinicsByCityService: Checking complete cache for ${city}...`);
+    
+    // TRY COMPLETE CITY CACHE FIRST
+    const cachedClinics = getCityClinicsComplete(city);
+    if (cachedClinics) {
+        console.log(`📦 SUCCESS: Returning ALL ${city} clinics from complete cache`);
         return cachedClinics.map(toClinicDTO);
     }
     
-    // Fallback to database
-    console.log(`🔍 Cache miss for ${city} - fetching from database`);
+    // CACHE MISS OR EXPIRED - FETCH ALL FROM DATABASE FOR THIS CITY
+    console.log(`🔍 CACHE MISS: Fetching ALL ${city} clinics from database`);
     const clinics = await getClinicsByCityFromRepo(city);
     
-    // Cache the results
-    for (const clinic of clinics) {
-        await cacheClinic(clinic);
-    }
+    // CACHE THE COMPLETE CITY DATASET
+    cacheCityComplete(city, clinics);
+    console.log(`✅ Cached complete city dataset for ${city}: ${clinics.length} clinics`);
     
     return clinics.map(toClinicDTO);
 };
 
-// New function to get single clinic by ID
+// GET SINGLE CLINIC - Uses individual cache
 export const getClinicByIdService = async (id: string) => {
-    // Try cache first
-    const cachedClinic = getClinicById(id);
+    console.log(`🔍 getClinicByIdService: Checking individual cache for ${id}...`);
+    
+    // TRY INDIVIDUAL CACHE FIRST
+    const cachedClinic = getIndividualClinic(id);
     if (cachedClinic) {
-        console.log(`📦 Returning clinic ${id} from cache`);
+        console.log(`📦 SUCCESS: Returning clinic ${id} from individual cache`);
         return toClinicDTO(cachedClinic);
     }
     
-    // Fallback to database
-    console.log(`🔍 Cache miss for clinic ${id} - fetching from database`);
+    // CACHE MISS - FETCH FROM DATABASE
+    console.log(`🔍 CACHE MISS: Fetching clinic ${id} from database`);
     const clinic = await getClinicByIdFromRepo(id);
     if (clinic) {
-        await cacheClinic(clinic);
+        // CACHE AS INDIVIDUAL
+        cacheIndividualClinic(clinic);
+        console.log(`✅ Cached individual clinic: ${id}`);
         return toClinicDTO(clinic);
     }
     
+    console.log(`❌ Clinic not found: ${id}`);
     return null;
 };
