@@ -79,22 +79,23 @@ export const getClinicsByCityService = async (city: string) => {
     return clinics.map(toClinicDTO);
 };
 
-// GET SINGLE CLINIC - Uses individual cache
+
+
 export const getClinicByIdService = async (id: string) => {
     console.log(`🔍 getClinicByIdService: Checking individual cache for ${id}...`);
     
-    // TRY INDIVIDUAL CACHE FIRST
+
     const cachedClinic = getIndividualClinic(id);
     if (cachedClinic) {
         console.log(`📦 SUCCESS: Returning clinic ${id} from individual cache`);
         return toClinicDTO(cachedClinic);
     }
     
-    // CACHE MISS - FETCH FROM DATABASE
+
     console.log(`🔍 CACHE MISS: Fetching clinic ${id} from database`);
     const clinic = await getClinicByIdFromRepo(id);
     if (clinic) {
-        // CACHE AS INDIVIDUAL
+
         cacheIndividualClinic(clinic);
         console.log(`✅ Cached individual clinic: ${id}`);
         return toClinicDTO(clinic);
