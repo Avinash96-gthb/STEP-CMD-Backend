@@ -33,13 +33,7 @@ export const addClinic = async (dto: CreateClinicRequestDTO) => {
     });
 
     await createClinic(clinicEntity, dto.serviceIds, dto.customPrices);
-    
-    // STRATEGY: Only cache as individual clinic
-    // Don't affect complete datasets since we just added new data
     cacheIndividualClinic(clinicEntity);
-    
-    // OPTIONAL: Clear complete caches since database has new data
-    // This ensures next "get all" will fetch fresh complete data
     console.log('🗑️ Clearing complete caches due to new clinic creation');
     clearCache();
     
@@ -50,7 +44,6 @@ export const addClinic = async (dto: CreateClinicRequestDTO) => {
 export const getAllClinicsService = async () => {
     console.log('🔍 getAllClinicsService: Checking complete cache...');
     
-    // TRY COMPLETE CACHE FIRST
     const cachedClinics = getAllClinicsComplete();
     if (cachedClinics) {
         console.log('📦 SUCCESS: Returning ALL clinics from complete cache');
@@ -72,18 +65,15 @@ export const getAllClinicsService = async () => {
 export const getClinicsByCityService = async (city: string) => {
     console.log(`🔍 getClinicsByCityService: Checking complete cache for ${city}...`);
     
-    // TRY COMPLETE CITY CACHE FIRST
     const cachedClinics = getCityClinicsComplete(city);
     if (cachedClinics) {
         console.log(`📦 SUCCESS: Returning ALL ${city} clinics from complete cache`);
         return cachedClinics.map(toClinicDTO);
     }
     
-    // CACHE MISS OR EXPIRED - FETCH ALL FROM DATABASE FOR THIS CITY
     console.log(`🔍 CACHE MISS: Fetching ALL ${city} clinics from database`);
     const clinics = await getClinicsByCityFromRepo(city);
     
-    // CACHE THE COMPLETE CITY DATASET
     cacheCityComplete(city, clinics);
     console.log(`✅ Cached complete city dataset for ${city}: ${clinics.length} clinics`);
     

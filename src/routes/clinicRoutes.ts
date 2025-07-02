@@ -9,8 +9,8 @@ const router = Router();
 
 router.post('/clinic-create', createClinic);
 router.get('/clinics', getAllClinicsHandler);
-router.get('/clinics/city/:city', getClinicsByCityHandler); // New cached endpoint
-router.get('/clinics/:id', getClinicByIdHandler); // New cached endpoint
+router.get('/clinics/city/:city', getClinicsByCityHandler); 
+router.get('/clinics/:id', getClinicByIdHandler); 
 router.get('/logs', getAllLogsHandler);
 router.get('/services', getAllServicesHandler);
 

@@ -9,7 +9,6 @@ const CACHE_KEYS = {
     INDIVIDUAL: (id: string) => `clinic:${id}`
 };
 
-// SIMPLIFIED - No manual timestamp tracking needed
 export const cacheIndividualClinic = (clinic: Clinic) => {
     clinicCache.set(CACHE_KEYS.INDIVIDUAL(clinic.id), clinic);
     console.log(`💾 Cached individual clinic: ${clinic.clinicId}`);

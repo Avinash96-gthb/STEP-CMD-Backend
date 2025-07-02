@@ -1,6 +1,6 @@
 export interface ServiceDTO {
-    id?: string; // UUID
-    serviceId?: string; // SRV001, SRV002, etc.
+    id?: string; 
+    serviceId?: string; 
     name: string;
     code: string;
     description: string;
@@ -24,7 +24,7 @@ export interface ClinicDTO {
 }
 
 export interface ClinicServiceDTO {
-    serviceId: string; // SRV001, SRV002, etc. (not UUID)
+    serviceId: string; 
     serviceName: string;
     serviceCode: string;
     serviceDescription: string;
@@ -43,6 +43,6 @@ export interface CreateClinicRequestDTO {
     zipCode: string;
     latitude: number;
     longitude: number;
-    serviceIds: string[]; // Array of SRV001, SRV002, etc. (not UUIDs)
-    customPrices?: { [serviceId: string]: number }; // Keys are SRV001, SRV002, etc.
+    serviceIds: string[]; 
+    customPrices?: { [serviceId: string]: number }; 
 }
