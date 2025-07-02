@@ -33,7 +33,6 @@ export const addClinic = async (dto: CreateClinicRequestDTO) => {
     });
 
     await createClinic(clinicEntity, dto.serviceIds, dto.customPrices);
-    cacheIndividualClinic(clinicEntity);
     console.log('🗑️ Clearing complete caches due to new clinic creation');
     clearCache();
     
