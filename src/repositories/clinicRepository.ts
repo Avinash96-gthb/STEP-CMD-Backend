@@ -17,7 +17,7 @@ export const createClinic = async (clinic: Clinic, serviceIds: string[], customP
             clinic.longitude, clinic.dateCreated
         ]);
 
-        // Convert service IDs (SRV001, etc.) to UUIDs for database storage
+
         for (const serviceId of serviceIds) {
             const serviceResult = await client.query(`SELECT id FROM services WHERE service_id = $1`, [serviceId]);
             if (serviceResult.rows.length > 0) {

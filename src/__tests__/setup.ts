@@ -37,7 +37,8 @@ await pool.query(`DELETE FROM clinics WHERE
   name LIKE '%Special Chars%' OR
   name LIKE '%Long%' OR
   name LIKE '%Custom Price%' OR
-  LENGTH(name) > 100  -- Add this to catch long names
+  name LIKE 'No Services Clinic' OR
+  LENGTH(name) > 100 
 `);
     console.log('🧹 Test data cleaned up');
   } catch (error) {

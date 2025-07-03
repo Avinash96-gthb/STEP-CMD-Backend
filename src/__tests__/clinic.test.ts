@@ -102,7 +102,7 @@ describe('Clinic Service', () => {
         zipCode: '00000',
         latitude: 0,
         longitude: 0,
-        serviceIds: [] // Empty array
+        serviceIds: [] 
       };
 
       await expect(addClinic(clinic)).rejects.toThrow('Some service IDs are invalid');
@@ -136,7 +136,6 @@ describe('Clinic Service', () => {
 
       const incompleteClinic = {
         name: 'Incomplete Clinic',
-        // Missing required fields like businessName, streetAddress, etc.
         serviceIds: serviceIds
       } as CreateClinicRequestDTO;
 
@@ -160,12 +159,8 @@ describe('Clinic Service', () => {
         longitude: 999.0, // Invalid longitude (should be -180 to 180)
         serviceIds: serviceIds
       };
-
-      // Note: This test assumes you have coordinate validation
-      // If not implemented yet, this test will pass but should fail in production
       const created = await addClinic(clinic);
       expect(created).toBeDefined();
-      // In a real system, you'd want validation that prevents invalid coordinates
     });
 
     it('should handle invalid custom prices gracefully', async () => {
@@ -189,7 +184,6 @@ describe('Clinic Service', () => {
         }
       };
 
-      // The system should handle this - either reject or ignore invalid prices
       const created = await addClinic(clinic);
       expect(created).toBeDefined();
     });
@@ -294,7 +288,7 @@ describe('Clinic Service', () => {
     });
   });
 
-  // PERFORMANCE TESTS
+
   describe('Performance Tests', () => {
     it('should handle multiple clinics creation in reasonable time', async () => {
       const services = await getAllServices();

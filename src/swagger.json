@@ -168,9 +168,9 @@
     },
     "/api/clinics/city/{city}": {
       "get": {
-        "summary": "Get clinics by city (cached)",
+        "summary": "Get clinics by city",
         "description": "Retrieves all clinics in a specific city. Uses cache-first strategy for improved performance.",
-        "tags": ["Clinics", "Cache"],
+        "tags": ["Search"],
         "parameters": [
           {
             "name": "city",
@@ -247,9 +247,9 @@
     },
     "/api/clinics/{id}": {
       "get": {
-        "summary": "Get clinic by ID (cached)",
+        "summary": "Get clinic by ID ",
         "description": "Retrieves a specific clinic by its ID or clinic ID. Uses cache-first strategy for improved performance.",
-        "tags": ["Clinics", "Cache"],
+        "tags": ["Search"],
         "parameters": [
           {
             "name": "id",
@@ -762,8 +762,8 @@
       "description": "Operations related to clinic management"
     },
     {
-      "name": "Cache",
-      "description": "Cached endpoints for improved performance"
+      "name": "Search",
+      "description": "search for specific clinics via city or id"
     },
     {
       "name": "Services",
